@@ -15,14 +15,17 @@ import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.AnalogGyro;
+import edu.wpi.first.wpilibj.DriverStation;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
-import com.pathplanner.lib.config.RobotConfig;
-
 
 public class DriveTrain extends SubsystemBase {
 
+  
   double speed_frontLeft;
   double speed_frontRight;
   double speed_backLeft;
@@ -48,8 +51,35 @@ public class DriveTrain extends SubsystemBase {
   MecanumDriveOdometry odometry;
   MecanumDriveWheelPositions wheel_positions;
 
+  RobotConfig config;
+
   public DriveTrain(){
-    
+     try{
+      RobotConfig config = RobotConfig.fromGUISettings();
+
+      AutoBuilder.configure(
+        this::getPose, 
+        this::resetPose, 
+        this::wheelSpeeds, 
+        this::DriveRobotRelative, 
+        new PPHolonomicDriveController(
+          Constants.translationConstants,
+          Constants.rotationConstants
+        ),
+        config,
+        () -> {
+            var alliance = DriverStation.getAlliance();
+            if (alliance.isPresent()) {
+                return alliance.get() == DriverStation.Alliance.Red;
+            }
+            return false;
+        },
+        this
+      );
+    }catch(Exception e){
+      DriverStation.reportError("Failed to load PathPlanner config and configure AutoBuilder", e.getStackTrace());
+    }
+
     backright = new WPI_VictorSPX(Constants.BackRightCAN_Num);
     frontright = new WPI_VictorSPX(Constants.FrontRightCAN_Num);
     frontleft = new WPI_TalonSRX(Constants.FrontLeftCAN_Num);
