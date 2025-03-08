@@ -27,7 +27,7 @@ public class ControlArmWithJoystick extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    power = RobotContainer.driverJoystick.getRawAxis(Constants.RightTrigger_Axis) + (RobotContainer.driverJoystick.getRawAxis(Constants.LeftTrigger_Axis) * -1);
+    power = RobotContainer.mainJoystick.getRawAxis(Constants.RightTrigger_Axis) + (RobotContainer.mainJoystick.getRawAxis(Constants.LeftTrigger_Axis) * -1);
     Arm.setPower(power);
   }
 

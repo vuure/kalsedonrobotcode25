@@ -4,25 +4,18 @@
 
 package frc.robot.subsystems;
 
-import com.revrobotics.spark.SparkAbsoluteEncoder;
-import com.revrobotics.spark.SparkMax;
-import edu.wpi.first.math.controller.PIDController;
-
-import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
 
 public class Arm extends SubsystemBase {
 
-  SparkAbsoluteEncoder armEncoder;
-  SparkMax armMotor;
-  PIDController pidArm;
+  WPI_TalonSRX elevator;
   
 
   public Arm() {
-    armMotor = new SparkMax(Constants.ArmPWM_Num, MotorType.kBrushless);
-    armEncoder = armMotor.getAbsoluteEncoder();
+    elevator = new WPI_TalonSRX(Constants.ElevatorCAN_Num);
   }
 
   @Override
@@ -31,13 +24,10 @@ public class Arm extends SubsystemBase {
   }
 
   public void setPower(double arm_motorPower){
-    armMotor.set(arm_motorPower);
+    elevator.set(arm_motorPower);
   }
 
-  public double encoderReading(){
-    return armEncoder.getPosition();
-  }
   public void stop(){
-    armMotor.stopMotor();
+    elevator.stopMotor();
   }
 }

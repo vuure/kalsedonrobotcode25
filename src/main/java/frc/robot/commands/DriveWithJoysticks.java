@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.RobotContainer;
 import frc.robot.subsystems.DriveTrain;
 
+
 public class DriveWithJoysticks extends Command {
   private final DriveTrain driveTrain;
 
@@ -20,7 +21,7 @@ public class DriveWithJoysticks extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    driveTrain.driveWithJoystick(RobotContainer.driverJoystick, RobotContainer.m_gyro, 1);
+    driveTrain.driveWithJoystick(RobotContainer.mainJoystick, 1);
   }
 
   // Called once the command ends or is interrupted.

@@ -2,117 +2,97 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.MecanumDriveKinematics;
-import edu.wpi.first.math.kinematics.MecanumDriveOdometry;
-import edu.wpi.first.math.kinematics.MecanumDriveWheelPositions;
-import edu.wpi.first.math.kinematics.MecanumDriveWheelSpeeds;
+import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
+import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
+import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.RobotContainer;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.AnalogGyro;
 import edu.wpi.first.wpilibj.DriverStation;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.controllers.PPLTVController;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
 public class DriveTrain extends SubsystemBase {
 
-  
-  double speed_frontLeft;
-  double speed_frontRight;
-  double speed_backLeft;
-  double speed_backRight;
 
   WPI_VictorSPX backright;
   WPI_VictorSPX frontright;
   WPI_TalonSRX frontleft;
   WPI_VictorSPX backleft;
 
+  AnalogGyro gyro;
+
   MecanumDrive mDrive;
-  Translation2d m_frontLeftLocation;
-  Translation2d m_frontRightLocation;
-  Translation2d m_backLeftLocation;
-  Translation2d m_backRightLocation;
 
-  Encoder m_frontLeftEncoder;
-  Encoder m_frontRightEncoder;
-  Encoder m_backLeftEncoder;
-  Encoder m_backRightEncoder;
+  Encoder leftEncoder = new Encoder(Constants.leftEncoder_A, Constants.leftEncoder_B);
+  Encoder rightEncoder = new Encoder(Constants.rightEncoder_A, Constants.rightEncoder_B);
+  
+  DifferentialDriveOdometry odometry = new DifferentialDriveOdometry(
+    gyro.getRotation2d(),
+    leftEncoder.getDistance(), rightEncoder.getDistance(),
+    new Pose2d(5.0, 13.5, new Rotation2d()));
 
-  MecanumDriveKinematics kinematics;
-  MecanumDriveOdometry odometry;
-  MecanumDriveWheelPositions wheel_positions;
-
+  //Mecanumlar arası mesafe GÜNCELLE
+  DifferentialDriveKinematics kinematics =
+  new DifferentialDriveKinematics(Units.inchesToMeters(27.0));
+  
   RobotConfig config;
-
+  
   public DriveTrain(){
-     try{
-      RobotConfig config = RobotConfig.fromGUISettings();
-
-      AutoBuilder.configure(
-        this::getPose, 
-        this::resetPose, 
-        this::wheelSpeeds, 
-        this::DriveRobotRelative, 
-        new PPHolonomicDriveController(
-          Constants.translationConstants,
-          Constants.rotationConstants
-        ),
-        config,
-        () -> {
-            var alliance = DriverStation.getAlliance();
-            if (alliance.isPresent()) {
-                return alliance.get() == DriverStation.Alliance.Red;
-            }
-            return false;
-        },
-        this
-      );
-    }catch(Exception e){
-      DriverStation.reportError("Failed to load PathPlanner config and configure AutoBuilder", e.getStackTrace());
-    }
 
     backright = new WPI_VictorSPX(Constants.BackRightCAN_Num);
     frontright = new WPI_VictorSPX(Constants.FrontRightCAN_Num);
     frontleft = new WPI_TalonSRX(Constants.FrontLeftCAN_Num);
     backleft = new WPI_VictorSPX(Constants.BackLeftCAN_Num);
 
-    m_frontLeftLocation = new Translation2d(0.381, 0.381);
-    m_frontRightLocation = new Translation2d(0.381, -0.381);
-    m_backLeftLocation = new Translation2d(-0.381, 0.381);
-    m_backRightLocation = new Translation2d(-0.381, -0.381);
+    gyro = new AnalogGyro(Constants.GyroPWM_Num);
+
 
     mDrive = new MecanumDrive(frontleft, backleft, frontright, backright);
     
-    kinematics = new MecanumDriveKinematics(m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation);
+    //HESAPLAMALARI YENİDEN YAP!
+    leftEncoder.setDistancePerPulse(0.005844360);//0,0058443603515625
+    rightEncoder.setDistancePerPulse(0.005844360);
 
-    wheel_positions = new MecanumDriveWheelPositions(
-      m_frontLeftEncoder.getDistance(), m_frontRightEncoder.getDistance(),
-      m_backLeftEncoder.getDistance(), m_backRightEncoder.getDistance());
+    try{
+      config = RobotConfig.fromGUISettings();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
 
-    odometry = new MecanumDriveOdometry(kinematics,RobotContainer.m_gyro.getRotation2d(), wheel_positions, new Pose2d(7.582, 7.094, new Rotation2d()));
-    //BAŞLAMA POZİSYONLARINI DEĞİŞTİR
-
-    m_frontLeftEncoder.setDistancePerPulse(47.877/Constants.Encoder_1turunpulsesayisi);
-    m_frontRightEncoder.setDistancePerPulse(47.877/Constants.Encoder_1turunpulsesayisi);
-    m_backLeftEncoder.setDistancePerPulse(47.877/Constants.Encoder_1turunpulsesayisi);
-    m_backRightEncoder.setDistancePerPulse(47.877/Constants.Encoder_1turunpulsesayisi);
-
+    AutoBuilder.configure(
+            this::getPose, 
+            this::resetPose,
+            this::wheelSpeeds,
+            (speeds, feedforwards) -> DriveRobotRelative(speeds),
+            new PPLTVController(0.02), 
+            config, 
+            () -> {
+              var alliance = DriverStation.getAlliance();
+              if (alliance.isPresent()) {
+                return alliance.get() == DriverStation.Alliance.Red;
+              }
+              return false;
+            },
+            this
+    );
   }
 
   @Override
   public void periodic() {
   }
 
-  public void driveWithJoystick(Joystick controller, AnalogGyro gyro, double speed){
+  //BURADAKİ SIKINTIYI DÜZELT
+  public void driveWithJoystick(Joystick controller, double speed){
     mDrive.driveCartesian(-controller.getRawAxis(Constants.LeftY_Axis) * speed, -controller.getRawAxis(Constants.LeftX_Axis) * speed, controller.getRawAxis(Constants.RightX_Axis) * speed, Rotation2d.fromDegrees(gyro.getAngle()) );
   }
 
@@ -130,20 +110,21 @@ public class DriveTrain extends SubsystemBase {
 
   public void resetPose(Pose2d pose) {
     System.out.println(pose);
-    odometry.resetPosition(RobotContainer.m_gyro.getRotation2d(), wheel_positions, pose);
+    //POZİSYON AYARLARINI DEĞİŞTİR
+    odometry.resetPosition(gyro.getRotation2d(), leftEncoder.getDistance(), rightEncoder.getDistance(),new Pose2d(5.0, 13.5, new Rotation2d()) );
   }
 
   public ChassisSpeeds wheelSpeeds(){
-    return kinematics.toChassisSpeeds(new MecanumDriveWheelSpeeds(m_frontLeftEncoder.getRate(),m_frontRightEncoder.getRate(),m_backLeftEncoder.getRate(),m_backRightEncoder.getRate()));
+    return kinematics.toChassisSpeeds(new DifferentialDriveWheelSpeeds(leftEncoder.getRate(),rightEncoder.getRate()));
   }
 
   public void DriveRobotRelative(ChassisSpeeds robotRelativeSpeeds){
-    MecanumDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(robotRelativeSpeeds);
+    DifferentialDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(robotRelativeSpeeds);
 
-    frontleft.set(wheelSpeeds.frontLeftMetersPerSecond);
-    frontright.set(wheelSpeeds.frontRightMetersPerSecond);
-    backleft.set(wheelSpeeds.rearLeftMetersPerSecond);
-    backright.set(wheelSpeeds.rearRightMetersPerSecond);
+    frontleft.set(wheelSpeeds.leftMetersPerSecond);
+    frontright.set(wheelSpeeds.leftMetersPerSecond);
+    backleft.set(wheelSpeeds.rightMetersPerSecond);
+    backright.set(wheelSpeeds.rightMetersPerSecond);
   }
 }
 

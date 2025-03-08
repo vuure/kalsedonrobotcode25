@@ -10,8 +10,19 @@ import com.pathplanner.lib.config.PIDConstants;
 */
 
 public final class Constants {
-  //PWM Number for Arm
-  public static final int ArmPWM_Num = 0;
+  //DIO number for Encoders
+  public static final int leftEncoder_A = 0;
+  public static final int leftEncoder_B = 1;
+
+  public static final int rightEncoder_A = 2;
+  public static final int rightEncoder_B = 3;
+
+  //PWM Number for Intake 
+  public static final int Intake1PWM_Num = 0;
+  public static final int Intake2PWM_Num = 1;
+
+  //CAN Number for Elevator
+  public static final int ElevatorCAN_Num = 1;
 
   //CAN ID's for Mecanum Drive Motors
   public static final int BackRightCAN_Num = 23;
@@ -20,8 +31,7 @@ public final class Constants {
   public static final int FrontRightCAN_Num = 22;
 
   //Drive PID Values
-  public static final PIDConstants translationConstants = new PIDConstants(5.0, 0.0, 0.0);
-  public static final PIDConstants rotationConstants = new PIDConstants(5.0, 0.0, 0.0);
+  public static final PIDConstants mecanumPIDConstants = new PIDConstants(5.0, 0.0, 0.0);
 
   //Driver Station Axis IDs for Controller1 (A.K.A the DriveTrain Controller)
   public static final int LeftY_Axis = 1;
@@ -31,6 +41,10 @@ public final class Constants {
   //Axis IDs for Controller1 for Arm
   public static final int LeftTrigger_Axis = 2;
   public static final int RightTrigger_Axis = 3;
+
+  //Button IDs for Coral Intake
+  public static final int CoralIntakeGetButton_Num = 1;
+  public static final int CoralIntakeLeaveButton_Num = 2;
 
   //Gyro Port
   public static final int GyroPWM_Num = 0;
@@ -55,7 +69,5 @@ public final class Constants {
   //Test
   public static final double DriveForwardTime = 3;
   public static final double AutoSpeed = 1;
-
-  public static final double Encoder_1turunpulsesayisi = 0.55;
 
 }
