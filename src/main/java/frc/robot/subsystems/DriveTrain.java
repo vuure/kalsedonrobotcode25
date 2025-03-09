@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -23,7 +25,6 @@ import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
 public class DriveTrain extends SubsystemBase {
 
-
   WPI_VictorSPX backright;
   WPI_VictorSPX frontright;
   WPI_TalonSRX frontleft;
@@ -35,17 +36,17 @@ public class DriveTrain extends SubsystemBase {
 
   Encoder leftEncoder = new Encoder(Constants.leftEncoder_A, Constants.leftEncoder_B);
   Encoder rightEncoder = new Encoder(Constants.rightEncoder_A, Constants.rightEncoder_B);
+
+  //HESAPLAMALARI YENİDEN YAP!
   
-  DifferentialDriveOdometry odometry = new DifferentialDriveOdometry(
-    gyro.getRotation2d(),
-    leftEncoder.getDistance(), rightEncoder.getDistance(),
-    new Pose2d(5.0, 13.5, new Rotation2d()));
+  DifferentialDriveOdometry odometry;
 
   //Mecanumlar arası mesafe GÜNCELLE
   DifferentialDriveKinematics kinematics =
   new DifferentialDriveKinematics(Units.inchesToMeters(27.0));
   
   RobotConfig config;
+
   
   public DriveTrain(){
 
@@ -56,12 +57,19 @@ public class DriveTrain extends SubsystemBase {
 
     gyro = new AnalogGyro(Constants.GyroPWM_Num);
 
+    backright.setInverted(true);
+    frontright.setInverted(true);
 
     mDrive = new MecanumDrive(frontleft, backleft, frontright, backright);
-    
-    //HESAPLAMALARI YENİDEN YAP!
+
     leftEncoder.setDistancePerPulse(0.005844360);//0,0058443603515625
     rightEncoder.setDistancePerPulse(0.005844360);
+
+    odometry = new DifferentialDriveOdometry(
+    gyro.getRotation2d(),
+    leftEncoder.getDistance(), rightEncoder.getDistance(),
+    new Pose2d(5.0, 13.5, new Rotation2d()));
+    //STARTING POSITIONU APRILTAG INPUTU ILE DEGISTIR
 
     try{
       config = RobotConfig.fromGUISettings();
@@ -91,7 +99,6 @@ public class DriveTrain extends SubsystemBase {
   public void periodic() {
   }
 
-  //BURADAKİ SIKINTIYI DÜZELT
   public void driveWithJoystick(Joystick controller, double speed){
     mDrive.driveCartesian(-controller.getRawAxis(Constants.LeftY_Axis) * speed, -controller.getRawAxis(Constants.LeftX_Axis) * speed, controller.getRawAxis(Constants.RightX_Axis) * speed, Rotation2d.fromDegrees(gyro.getAngle()) );
   }
